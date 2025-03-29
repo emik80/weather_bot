@@ -1,0 +1,21 @@
+# IDE and cache
+.idea/
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Environments
+venv/
+.env
+
+# project data
+/logs/*
+/data/*
+/images/*
+!.gitkeep
+
+*.db
+*.log
+
+# temp file
+temp.py
