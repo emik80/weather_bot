@@ -133,10 +133,11 @@ async def get_weather_type(callback: CallbackQuery, state: FSMContext):
 
     except Exception as e:
         logger.exception(e)
+        await callback.answer()
 
     await state.clear()
     await state.set_state(FSMCommon.get_location_type)
-    await state.update_data(user_id=callback.message.from_user.id,
+    await state.update_data(user_id=callback.from_user.id,
                             location_type=None,
                             location_data=None,
                             weather_type=None)
@@ -151,12 +152,12 @@ async def send_error(message: Message):
     except TypeError as ex:
         await message.reply(text=BOT_MESSAGES.get('error'))
         logger.warning(ex)
-
-
-@router.message(StateFilter(default_state))
-async def send_echo(message: Message):
-    try:
-        await message.reply(text='echo' + BOT_MESSAGES.get('error'))
-    except TypeError as ex:
-        await message.reply(text='echo' + BOT_MESSAGES.get('error'))
-        logger.warning(ex)
+#
+#
+# @router.message(StateFilter(default_state))
+# async def send_echo(message: Message):
+#     try:
+#         await message.reply(text='echo: ' + BOT_MESSAGES.get('error'))
+#     except TypeError as ex:
+#         await message.reply(text='echo: ' + BOT_MESSAGES.get('error'))
+#         logger.warning(ex)
