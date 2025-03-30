@@ -86,7 +86,7 @@ class OpenWeatherAPI:
                            f'🌡️ <b>Температура:</b> {int(round(main_data.get('temp'), 0))}°C\n'
                            f'🌬️ <b>Відчувається як:</b> {int(round(main_data.get('feels_like'), 0))}°C\n\n'
                            f'💨 <b>Швидкість вітру:</b> {int(round(wind_data.get('speed'), 0))} м/с\n'
-                           f'☁️ <b>Вологість повітря:</b> {main_data.get('humidity')}%\n'
+                           f'💧 <b>Вологість повітря:</b> {main_data.get('humidity')}%\n'
                            f'☁️ <b>Хмарність:</b> {clouds_data.get('all')}%\n'
                            f'🌫️ <b>Атмосферний тиск:</b> {main_data.get('pressure')} гПа\n')
         return weather_message
