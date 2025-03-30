@@ -22,11 +22,11 @@ async def main():
         try:
             await bot.delete_webhook(drop_pending_updates=True)
             await dp.start_polling(bot)
-        except TelegramNetworkError as ex:
-            logger.exception(f'[BOT EXCEPTION]: Error occurred: {ex}. Restarting the bot...')
+        except TelegramNetworkError as e:
+            logger.exception(f'[BOT EXCEPTION]: Error occurred: {e}. Restarting the bot...')
             await asyncio.sleep(5)
-        except Exception as ex:
-            logger.exception(f'[BOT EXCEPTION]: Unexpected error occurred: {ex}. Exiting...')
+        except Exception as e:
+            logger.exception(f'[BOT EXCEPTION]: Unexpected error occurred: {e}. Exiting...')
             break
 
 

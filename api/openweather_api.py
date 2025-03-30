@@ -1,5 +1,6 @@
 from collections import defaultdict
 from datetime import datetime, timezone
+from typing import Dict
 
 import requests
 
@@ -8,16 +9,17 @@ from config import logger, base_config
 
 class OpenWeatherAPI:
     BASE_URL = base_config.OPENWEATHER_API_URL
-    api_key = base_config.OPENWEATHER_API_KEY
+    API_KEY = base_config.OPENWEATHER_API_KEY
 
     def __init__(self, weather_type: str, location_type: str, location_data: dict):
         if not all([weather_type, location_type, location_data]):
-            logger.error(f'None parameter: weather_type: {weather_type}, location_type: {location_type}, location_data:{location_data}')
+            logger.error(f'None parameter: weather_type: {weather_type}, location_type: {location_type},'
+                         f' location_data:{location_data}')
             raise ValueError()
 
-        self.weather_type = weather_type  # 'current_weather' или 'forecast'
-        self.location_type = location_type  # 'current' или 'target'
-        self.location_data = location_data  # {'lat': xx, 'lon': xx} или {'city': 'Kyiv'}
+        self.weather_type = weather_type
+        self.location_type = location_type
+        self.location_data = location_data
 
     def get_weather(self):
         if self.weather_type == 'current_weather':
@@ -28,19 +30,9 @@ class OpenWeatherAPI:
             logger.error('Invalid weather type. Use "current_weather" or "forecast".')
             raise ValueError()
 
-    def _get_current_weather(self):
-        endpoint = f'{self.BASE_URL}weather'
-        params = self._build_params()
-        return self._make_request(endpoint, params)
-
-    def _get_forecast(self):
-        endpoint = f'{self.BASE_URL}forecast'
-        params = self._build_params()
-        return self._make_request(endpoint, params)
-
-    def _build_params(self):
+    def _build_params(self) -> Dict[str, str]:
         params = {
-            'appid': self.api_key,
+            'appid': self.API_KEY,
             'units': 'metric',
             'lang': 'ua'
         }
@@ -63,6 +55,16 @@ class OpenWeatherAPI:
 
         return params
 
+    def _get_current_weather(self):
+        endpoint = f'{self.BASE_URL}weather'
+        params = self._build_params()
+        return self._make_request(endpoint, params)
+
+    def _get_forecast(self):
+        endpoint = f'{self.BASE_URL}forecast'
+        params = self._build_params()
+        return self._make_request(endpoint, params)
+
     def _make_request(self, url, params):
         try:
             response = requests.get(url, params=params)
@@ -73,7 +75,8 @@ class OpenWeatherAPI:
             logger.exception(f'Error making request: {e}')
             return None
 
-    def parse_weather_data(self, weather_data):
+    @staticmethod
+    def parse_weather_data(weather_data):
         main_data = weather_data.get('main')
         wind_data = weather_data.get('wind')
         clouds_data = weather_data.get('clouds')
@@ -88,7 +91,8 @@ class OpenWeatherAPI:
                            f'🌫️ <b>Атмосферний тиск:</b> {main_data.get('pressure')} гПа\n')
         return weather_message
 
-    def parse_forecast_data(self, forecast_data):
+    @staticmethod
+    def parse_forecast_data(forecast_data):
         daily_forecast = defaultdict(
             lambda: {'min_temp': float('inf'), 'max_temp': float('-inf'), 'description': '', 'icon': ''})
 
@@ -103,7 +107,6 @@ class OpenWeatherAPI:
                 daily_forecast[date]['max_temp'] = max(daily_forecast[date]['max_temp'], temp_max)
                 daily_forecast[date]['description'] = description
 
-        # Формируем сообщение с прогнозом
         forecast_message = '<b>Прогноз погоди на 5 днів:</b>\n\n'
         for date, data in daily_forecast.items():
             forecast_message += (f'📅 <b>{date}</b>: {data.get('description')}\n'

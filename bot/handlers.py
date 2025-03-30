@@ -3,7 +3,6 @@ from typing import Union
 from aiogram import Router, F
 from aiogram.enums import ParseMode
 from aiogram.fsm.context import FSMContext
-from aiogram.fsm.state import default_state
 from aiogram.types import Message, CallbackQuery, ReplyKeyboardRemove
 from aiogram.filters import CommandStart, Command, StateFilter
 
@@ -14,17 +13,17 @@ from bot.states import FSMCommon
 from config import logger
 
 router = Router()
-router.message.filter(F.chat.type.in_({"private"}))
-router.callback_query.filter(F.message.chat.type.in_({"private"}))
+router.message.filter(F.chat.type.in_({'private'}))
+router.callback_query.filter(F.message.chat.type.in_({'private'}))
 
 
-# Help
+# Help command
 @router.message(Command(commands='help'))
 async def process_command_help(message: Message):
     await message.answer(text=BOT_MESSAGES.get('help'))
 
 
-# Start
+# Start command
 @router.message(CommandStart())
 async def process_command_start(message: Message, state: FSMContext):
     await state.clear()
@@ -37,7 +36,7 @@ async def process_command_start(message: Message, state: FSMContext):
                          reply_markup=start_kb)
 
 
-# Cancel
+# Cancel command
 @router.message(F.text.in_({'/cancel', '🔴 Скасувати'}))
 @router.callback_query(F.data == 'cancel')
 async def process_command_cancel(callback: Union[Message, CallbackQuery], state: FSMContext):
@@ -101,7 +100,7 @@ async def process_url(message: Message, state: FSMContext):
                          reply_markup=forecast_type_kb)
 
 
-# Enter weather type
+# Choose forecast type
 @router.callback_query(StateFilter(FSMCommon.get_weather_type))
 async def get_weather_type(callback: CallbackQuery, state: FSMContext):
     weather_type = callback.data
@@ -155,15 +154,6 @@ async def send_error(message: Message):
     try:
         await message.answer(text=BOT_MESSAGES.get('unknown'))
         await message.delete()
-    except TypeError as ex:
+    except TypeError as e:
         await message.reply(text=BOT_MESSAGES.get('error'))
-        logger.warning(ex)
-#
-#
-# @router.message(StateFilter(default_state))
-# async def send_echo(message: Message):
-#     try:
-#         await message.reply(text='echo: ' + BOT_MESSAGES.get('error'))
-#     except TypeError as ex:
-#         await message.reply(text='echo: ' + BOT_MESSAGES.get('error'))
-#         logger.warning(ex)
+        logger.warning(e)
