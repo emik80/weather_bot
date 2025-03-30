@@ -1,3 +1,6 @@
+from collections import defaultdict
+from datetime import datetime, timezone
+
 import requests
 
 from config import logger, base_config
@@ -39,7 +42,7 @@ class OpenWeatherAPI:
         params = {
             'appid': self.api_key,
             'units': 'metric',
-            'lang': 'ua, uk'
+            'lang': 'ua'
         }
 
         if self.location_type == 'current':
@@ -69,3 +72,40 @@ class OpenWeatherAPI:
         except requests.exceptions.RequestException as e:
             logger.exception(f'Error making request: {e}')
             return None
+
+    def parse_weather_data(self, weather_data):
+        main_data = weather_data.get('main')
+        wind_data = weather_data.get('wind')
+        clouds_data = weather_data.get('clouds')
+        weather_description = weather_data.get('weather')[0].get('description')
+
+        weather_message = (f'🌍 <b>Поточна погода:</b> {weather_description}\n\n'
+                           f'🌡️ <b>Температура:</b> {int(round(main_data.get('temp'), 0))}°C\n'
+                           f'🌬️ <b>Відчувається як:</b> {int(round(main_data.get('feels_like'), 0))}°C\n\n'
+                           f'💨 <b>Швидкість вітру:</b> {int(round(wind_data.get('speed'), 0))} м/с\n'
+                           f'☁️ <b>Вологість повітря:</b> {main_data.get('humidity')}%\n'
+                           f'☁️ <b>Хмарність:</b> {clouds_data.get('all')}%\n'
+                           f'🌫️ <b>Атмосферний тиск:</b> {main_data.get('pressure')} гПа\n')
+        return weather_message
+
+    def parse_forecast_data(self, forecast_data):
+        daily_forecast = defaultdict(
+            lambda: {'min_temp': float('inf'), 'max_temp': float('-inf'), 'description': '', 'icon': ''})
+
+        for entry in forecast_data.get('list'):
+            if entry:
+                date = datetime.fromtimestamp(entry.get('dt'), timezone.utc).strftime('%d-%m-%Y')
+                temp_min = entry.get('main').get('temp_min')
+                temp_max = entry.get('main').get('temp_max')
+                description = entry.get('weather')[0].get('description')
+
+                daily_forecast[date]['min_temp'] = min(daily_forecast[date]['min_temp'], temp_min)
+                daily_forecast[date]['max_temp'] = max(daily_forecast[date]['max_temp'], temp_max)
+                daily_forecast[date]['description'] = description
+
+        # Формируем сообщение с прогнозом
+        forecast_message = '<b>Прогноз погоди на 5 днів:</b>\n\n'
+        for date, data in daily_forecast.items():
+            forecast_message += (f'📅 <b>{date}</b>: {data.get('description')}\n'
+                                 f'🌡️ <b>Температура:</b> {int(round(data['min_temp'], 0))}...{int(round(data['max_temp'], 0))}°C\n\n')
+        return forecast_message

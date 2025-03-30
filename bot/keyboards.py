@@ -36,13 +36,13 @@ def reply_kb_builder(buttons, width=2):
 
 
 start_kb = create_inline_kb(
-        current='📍 Поточна локація',
+        current='📍 Моя локація',
         target='💬 Ввести вручну',
     )
 
 forecast_type_kb = create_inline_kb(
-    current_weather='Поточна погода',
-    forecast='Прогноз на 3 дні',
+    current_weather='🌡️ Поточна погода',
+    forecast='📅 На 5 днів',
 )
 
 # Buttons

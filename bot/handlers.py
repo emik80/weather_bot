@@ -1,6 +1,7 @@
 from typing import Union
 
 from aiogram import Router, F
+from aiogram.enums import ParseMode
 from aiogram.fsm.context import FSMContext
 from aiogram.fsm.state import default_state
 from aiogram.types import Message, CallbackQuery, ReplyKeyboardRemove
@@ -107,7 +108,6 @@ async def get_weather_type(callback: CallbackQuery, state: FSMContext):
     await state.update_data(weather_type=weather_type)
     await state.set_state(FSMCommon.processing)
     await callback.answer()
-    await callback.message.answer(text=BOT_MESSAGES.get('wait'))
 
     user_data = await state.get_data()
     weather_type = user_data.get('weather_type')
@@ -123,17 +123,21 @@ async def get_weather_type(callback: CallbackQuery, state: FSMContext):
         weather_data = weather_api.get_weather()
 
         if weather_data:
-            message_text = f'{BOT_MESSAGES.get(weather_type)}\n\n{weather_data}'
-            await callback.message.answer(text=message_text,
-                                          reply_markup=start_kb)
+            match weather_type:
+                case 'current_weather':
+                    formatted_data = weather_api.parse_weather_data(weather_data)
+                case 'forecast':
+                    formatted_data = weather_api.parse_forecast_data(weather_data)
+            await callback.message.answer(text=formatted_data,
+                                          parse_mode=ParseMode.HTML)
         else:
-            await callback.message.answer(text=BOT_MESSAGES.get('warning'),
-                                          reply_markup=start_kb)
+            await callback.message.answer(text=BOT_MESSAGES.get('warning'))
             logger.error(f'[ERROR]: {location_type}: {location_data} - {weather_type}')
 
     except Exception as e:
         logger.exception(e)
-        await callback.answer()
+        await callback.message.answer(text=BOT_MESSAGES.get('location'),
+                                      reply_markup=start_kb)
 
     await state.clear()
     await state.set_state(FSMCommon.get_location_type)
@@ -141,6 +145,8 @@ async def get_weather_type(callback: CallbackQuery, state: FSMContext):
                             location_type=None,
                             location_data=None,
                             weather_type=None)
+    await callback.message.answer(text=BOT_MESSAGES.get('location'),
+                                  reply_markup=start_kb)
 
 
 # Other messages
