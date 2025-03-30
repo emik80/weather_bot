@@ -32,7 +32,8 @@ async def process_command_start(message: Message, state: FSMContext):
                             location_type=None,
                             location_data=None,
                             weather_type=None)
-    await message.answer(text=BOT_MESSAGES.get('start'),
+    await message.answer(text=f'Привіт, {message.from_user.first_name}!\n'
+                              f'{BOT_MESSAGES.get("hello")}',
                          reply_markup=start_kb)
 
 
